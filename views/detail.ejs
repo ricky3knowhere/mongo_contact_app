@@ -15,11 +15,15 @@
         <h6 class="card-subtitle mb-4 text-muted"><%= contact.email %></h6>
         <p class="card-text"><%= contact.phone %></p>
 
-        <a href="/delete/<%= contact.name %>" class="btn btn-danger badge rounded-pill d-iniline-block mb-3"
+        <!-- <a href="/delete/<%= contact.name %>" class="btn btn-danger badge rounded-pill d-iniline-block mb-3"
           onclick="return confirm('Delete this contact..?')">
-          <i class="bi bi-trash me-1"></i>Delete</a>
-
-        <a href="/edit/<%= contact.name %>" class="btn btn-primary badge rounded-pill d-iniline-block mb-3">
+          <i class="bi bi-trash me-1"></i>Delete</a> -->
+        <form method="POST" action="/contact?_method=DELETE" class="d-inline">
+          <input type="hidden" name="id" value="<%= contact._id %>">
+          <button type="submit" class="btn btn-danger badge rounded-pill mb-3"
+            onclick="return confirm('Delete this contact..?')"><i class="bi bi-trash me-1"></i>Delete</button>
+        </form>
+        <a href="/edit/<%= contact.name %>" class="btn btn-primary badge rounded-pill nemb-3">
           <i class="bi bi-pencil-square me-1"></i>Edit</a><br>
 
         <a href="/contact" class="card-link mt-1">&laquo; Back to Contact list</a>

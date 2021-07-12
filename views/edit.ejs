@@ -12,19 +12,21 @@
     </div>
     <% } %>
 
-    <form method="POST" action="/update">
+    <form method="POST" action="/contact?_method=PUT">
+      <input type="text" name="_id" value="<%= contact._id %>" hidden>
       <input type="text" name="oldName" value="<%= contact.oldName || contact.name %>" hidden>
+      
       <div class="mb-3">
         <label for="name" class="form-label">Name</label>
-        <input type="text" class="form-control" id="name" name="name" required value="<%= contact.name %>"/>
+        <input type="text" class="form-control" id="name" name="name" required value="<%= contact.name %>" />
       </div>
       <div class="mb-3">
         <label for="email" class="form-label">Email</label>
-        <input type="email" class="form-control" id="email" name="email" required value="<%= contact.email %>"/>
+        <input type="email" class="form-control" id="email" name="email" required value="<%= contact.email %>" />
       </div>
       <div class="mb-3">
         <label for="phone" class="form-label">Phone</label>
-        <input type="number" class="form-control" id="phone" name="phone" required value="<%= contact.phone %>"/>
+        <input type="number" class="form-control" id="phone" name="phone" required value="<%= contact.phone %>" />
       </div>
 
       <button type="submit" class="btn btn-success">Update</button>

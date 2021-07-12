@@ -1,6 +1,7 @@
 const express = require("express")
 const expressLayouts = require('express-ejs-layouts')
 const morgan = require('morgan')
+const methodOverride = require('method-override')
 
 const {
   body,
@@ -9,15 +10,11 @@ const {
 } = require('express-validator');
 
 
+// Connect to database
+require('./utils/db')
 const {
-  getData,
-  detailData,
-  addData,
-  deleteData,
-  updateData,
-  duplicateCheck
-} = require('./utils/contacts')
-
+  Contact
+} = require('./models/contact')
 
 const app = express()
 const port = 3000
@@ -35,6 +32,7 @@ app.set('layout', 'layouts/main-layouts')
 
 
 // Third-praty middleware
+app.use(methodOverride('_method'))
 app.use(expressLayouts)
 app.use(morgan('dev'))
 
@@ -73,19 +71,21 @@ app.get("/about", (req, res) => {
 })
 
 
-app.get("/contact", (req, res) => {
+app.get("/contact", async (req, res) => {
   res.render('contact', {
     title: 'Contact',
-    contacts: getData(),
+    contacts: await Contact.find(),
     notif: req.flash('notif')
   })
 
 })
 
-app.get("/detail/:name", (req, res) => {
+app.get("/detail/:name", async (req, res) => {
   res.render('detail', {
     title: 'Contact Detail',
-    contact: detailData(req.params.name)
+    contact: await Contact.findOne({
+      name: req.params.name
+    })
   })
 
 })
@@ -97,19 +97,23 @@ app.get("/contact/add", (req, res) => {
   })
 })
 
-app.get("/edit/:name", (req, res) => {
+app.get("/edit/:name", async (req, res) => {
 
   res.render('edit', {
     title: 'Edit Contact',
-    contact: detailData(req.params.name)
+    contact: await Contact.findOne({
+      name: req.params.name
+    })
   })
 })
 
 
 //  Add Contact
 app.post("/contact", [
-    body('name').custom((value) => {
-      const result = duplicateCheck(value)
+    body('name').custom(async (value) => {
+      const result = await Contact.findOne({
+        name: value
+      })
       console.log(result)
       if (result) {
         throw new Error('Name has been registered')
@@ -128,20 +132,60 @@ app.post("/contact", [
         title: 'Add Contact',
         errors: errors.array()
       })
+
     } else {
-      addData(req.body)
-      req.flash('notif', 'Contact added successfully...')
-      res.redirect('contact')
+      Contact.insertMany(req.body, (err) => {
+        req.flash('notif', 'Contact added successfully...')
+        res.redirect('contact')
+      })
     }
   })
 
 
 //  update Contact
-app.post("/update", [
-    body('name').custom((value, {
+// app.post("/update", [
+//     body('name').custom(async (value, {
+//       req
+//     }) => {
+//       const result = await Contact.findOne({
+//         name: value
+//       })
+
+//       if (req.body.oldName !== value && result) {
+//         throw new Error('Name has been registered')
+//       }
+
+//       return true
+//     }),
+//     check('email', 'Invalid Email format').isEmail(),
+//     check('phone', 'Invalid Indonesian phone number format').isMobilePhone('id-ID')
+//   ],
+//   async (req, res) => {
+//     const errors = validationResult(req)
+
+//     if (!errors.isEmpty()) {
+//       res.render('edit', {
+//         title: 'Edit Contact',
+//         errors: errors.array(),
+//         contact: req.body
+//       })
+//     } else {
+
+//       await Contact.updateOne(req.body)
+//       req.flash('notif', 'Contact updated successfully...')
+//       res.redirect('contact')
+//     }
+//   })
+
+
+//  update Contact
+app.put("/contact", [
+    body('name').custom(async (value, {
       req
     }) => {
-      const result = duplicateCheck(value)
+      const result = await Contact.findOne({
+        name: value
+      })
 
       if (req.body.oldName !== value && result) {
         throw new Error('Name has been registered')
@@ -162,20 +206,49 @@ app.post("/update", [
         contact: req.body
       })
     } else {
-      updateData(req.body)
-      req.flash('notif', 'Contact updated successfully...')
-      res.redirect('contact')
+      // res.send(req.body)
+      console.log(req.body)
+      Contact.updateOne({
+          _id: req.body._id
+        }, {
+          $set: {
+            name: req.body.name,
+            phone: req.body.phone,
+            email: req.body.email
+          }
+        })
+        .then((log) => {
+
+          req.flash('notif', 'Contact updated successfully...')
+          res.redirect('/contact')
+        })
     }
   })
 
 
 
-app.get("/delete/:name", (req, res) => {
+// app.get("/delete/:name", async (req, res) => {
 
-  deleteData(req.params.name)
-  req.flash('notif', 'Contact deleted successfully...')
+//   const contact = await Contact.findOne({
+//     name: req.params.name
+//   })
 
-  res.redirect('/contact')
+//   Contact.deleteOne({_id: contact._id }, (err) => {
+
+//     req.flash('notif', 'Contact deleted successfully...')
+//     res.redirect('/contact')
+//   })
+// })
+app.delete("/contact", (req, res) => {
+
+  Contact.deleteOne({
+      _id: req.body.id
+    })
+    .then((err) => {
+
+      req.flash('notif', 'Contact deleted successfully...')
+      res.redirect('/contact')
+    })
 })
 
 
