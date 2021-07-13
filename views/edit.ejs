@@ -13,7 +13,7 @@
     <% } %>
 
     <form method="POST" action="/contact?_method=PUT">
-      <input type="text" name="_id" value="<%= contact._id %>" hidden>
+      <input type="text" name="id" value="<%= contact._id %>" hidden>
       <input type="text" name="oldName" value="<%= contact.oldName || contact.name %>" hidden>
       
       <div class="mb-3">
